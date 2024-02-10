@@ -46,9 +46,18 @@ class Tree:
             self._print_tree(node.right, lst_return)
         return lst_return
 
-    def print_tree(self) -> list[dict[str, str | int]] | None:
+    def print_tree(self) -> str | None:
         if self.root:
-            return self._print_tree(self.root, [])
+            to_str = self._print_tree(self.root, [])
+            place = 1
+            to_send: str = ""
+            for diction in to_str:
+                x = ""
+                for item in list(diction.items()):
+                    x += f"{item[0]} = {str(item[1])} "
+                to_send += f"{place}. {x}\n"
+                place += 1
+            return to_send
 
     def add_node(self, node: Node, search: str) -> None:
         if not self.root:
@@ -79,50 +88,52 @@ class Tree:
 
     def remove_node(self, find: int | str, search: str) -> bool:
         temp: Optional[Node | None] = self.root
-        prev: Node = temp  # type: ignore
-        while temp:
-            if find < temp.vars[search]:
-                if not temp.left:
-                    return False
-                prev = temp
-                temp = temp.left
-                continue
-            elif find > temp.vars[search]:
-                if not temp.right:
-                    return False
-                prev = temp
-                temp = temp.right
-                continue
-            else:
-                if not temp.left and not temp.right:
-                    if prev.left is temp:
-                        prev.left = None
-                    elif prev.right is temp:
-                        prev.right = None
-                    else:
-                        self.root = None
-                elif temp.left and not temp.right:
-                    if prev.left is temp:
-                        prev.left = None
-                    elif prev.right is temp:
-                        prev.right = None
-                    else:
-                        self.root = temp.left
-                elif not temp.left and temp.right:
-                    if prev.left is temp:
-                        prev.left = temp.right
-                    elif prev.right is temp:
-                        prev.right = temp.right
-                    else:
-                        self.root = temp.right
-                else:
-                    max_node = self._max_node(temp.left)  # type: ignore
-                    temp.vars[search] = max_node.vars[search]
-                    max_node.vars[search] = find
+        if temp is not None:
+            prev: Node = temp
+            while temp:
+                if find < temp.vars[search]:
+                    if not temp.left:
+                        return False
                     prev = temp
                     temp = temp.left
                     continue
-            return True
+                elif find > temp.vars[search]:
+                    if not temp.right:
+                        return False
+                    prev = temp
+                    temp = temp.right
+                    continue
+                else:
+                    if not temp.left and not temp.right:
+                        if prev.left is temp:
+                            prev.left = None
+                        elif prev.right is temp:
+                            prev.right = None
+                        else:
+                            self.root = None
+                    elif temp.left and not temp.right:
+                        if prev.left is temp:
+                            prev.left = None
+                        elif prev.right is temp:
+                            prev.right = None
+                        else:
+                            self.root = temp.left
+                    elif not temp.left and temp.right:
+                        if prev.left is temp:
+                            prev.left = temp.right
+                        elif prev.right is temp:
+                            prev.right = temp.right
+                        else:
+                            self.root = temp.right
+                    else:
+                        if temp.left:
+                            max_node = self._max_node(temp.left)
+                            temp.vars[search] = max_node.vars[search]
+                            max_node.vars[search] = find
+                        prev = temp
+                        temp = temp.left
+                        continue
+                return True
         # Empty Tree
         return False
 

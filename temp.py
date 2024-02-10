@@ -10,3 +10,5 @@
 
 
 print("s".isalnum())
+a = {"a": "ak", "b": "bk"}
+print(list(a.items()))
