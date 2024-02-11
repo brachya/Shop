@@ -59,6 +59,7 @@ class ShopServer:
         )
         self.tree_by_name.add_node(customer, "name")
         self.tree_by_last_name.add_node(customer, "last_name")
+        print(self.tree_by_last_name.print_tree("last_name"))
         self.tree_by_id.add_node(customer, "identity")
         self.tree_by_phone.add_node(customer, "phone")
         self.tree_by_date.add_node(customer, "date")
@@ -119,7 +120,11 @@ class ShopServer:
         self, client_socket: socket.socket, client_address: tuple[str, int]
     ) -> None:
         while True:
-            message = client_socket.recv(1024).decode("UTF-8")
+            try:
+                message = client_socket.recv(1024).decode("UTF-8")
+            except ConnectionResetError:
+                print(f"{client_address} shuted off")
+                break
             if message.startswith("select"):
                 message = message.split()
                 result: Node | None = self.tree_by_name.find_node_recursive(
@@ -134,23 +139,27 @@ class ShopServer:
                 message = message[4:]
                 valid: list[str] | str = self.validation(message)
                 if type(valid) == type(""):
-                    client_socket.sendall(valid.encode())
+                    client_socket.sendall(valid.encode())  # type: ignore
                     continue
-                print(valid)
-                identity = int(valid[3])
+                identity = int(valid[2])
                 if self.id_exist(identity):
                     client_socket.sendall(f"id {identity} already exist.".encode())
                     continue
-                self.set_new_customer(valid)
+                self.set_new_customer(valid)  # type: ignore
                 client_socket.sendall("customer successfully added.".encode())
             elif message.startswith("print"):
-                all_customers = self.tree_by_name.print_tree()
+                if len(message) == 2:
+                    message = message.split()
+                    all_customers = self.tree_by_name.print_tree(message[1])
+                else:
+                    all_customers = self.tree_by_name.print_tree("name")
                 if all_customers:
                     client_socket.sendall(all_customers.encode())
 
 
 if __name__ == "__main__":
+    sys.argv
     # shop = ShopServer(sys.argv[1])
-    shop = ShopServer("server/db.csv")
+    shop = ShopServer("C:\\Studies\\Final_Project\\server\\db.csv")
     while True:
         shop.start_connection()
