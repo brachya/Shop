@@ -6,10 +6,10 @@ class Node:
         self,
         name: str,
         last_name: str,
-        identity: int,
-        phone: int,
+        identity: str,
+        phone: str,
         date: str,
-        dept: int,
+        dept: str,
     ) -> None:
         self.name = name
         self.last_name = last_name
@@ -41,16 +41,30 @@ class Node:
 
 class Tree:
 
-    def __init__(self) -> None:
+    def __init__(self, orderby: str) -> None:
         self.root: Optional[Node] = None
+        self.orderby: str = orderby
 
-    def _print_tree(
-        self, node: Node, lst_return: list[dict[str, str | int]], orderby: str
-    ) -> None:
+    def _nodes(self, node: Node, lst_return: list[Node]) -> None:
         if not node:
             return
-        if node.left[orderby]:
-            self._print_tree(node.left[orderby], lst_return, orderby)  # type: ignore
+        if node.left[self.orderby]:
+            self._nodes(node.left[self.orderby], lst_return)  # type: ignore
+        lst_return.append(node)
+        if node.right[self.orderby]:
+            self._nodes(node.right[self.orderby], lst_return)  # type: ignore
+
+    def nodes(self) -> list[Node]:
+        lst_return: list[Node] = []
+        if self.root:
+            self._nodes(self.root, lst_return)
+        return lst_return
+
+    def _print_tree(self, node: Node, lst_return: list[dict[str, str]]) -> None:
+        if not node:
+            return
+        if node.left[self.orderby]:
+            self._print_tree(node.left[self.orderby], lst_return)  # type: ignore
         lst_return.append(
             {
                 "first name": node.name,
@@ -61,13 +75,13 @@ class Tree:
                 "dept": node.dept,
             }
         )
-        if node.right[orderby]:
-            self._print_tree(node.right[orderby], lst_return, orderby)  # type: ignore
+        if node.right[self.orderby]:
+            self._print_tree(node.right[self.orderby], lst_return)  # type: ignore
 
-    def print_tree(self, orderby: str) -> str | None:
+    def print_tree(self) -> str | None:
         if self.root:
-            to_str: list[dict[str, str | int]] = []
-            self._print_tree(self.root, to_str, orderby)
+            to_str: list[dict[str, str]] = []
+            self._print_tree(self.root, to_str)
             place = 1
             to_send: str = ""
             for diction in to_str:
@@ -78,85 +92,89 @@ class Tree:
                 place += 1
             return to_send
 
-    def add_node(self, node: Node, orderby: str) -> None:
+    def add_node(self, node: Node) -> None:
         if not self.root:
             self.root = node
         else:
             temp = self.root
             while temp:
-                if node.vars[orderby] <= temp.vars[orderby]:
-                    if not temp.left[orderby]:
-                        temp.left[orderby] = node
+                if node.vars[self.orderby] <= temp.vars[self.orderby]:
+                    if not temp.left[self.orderby]:
+                        temp.left[self.orderby] = node
                         break
-                    temp = temp.left[orderby]
+                    temp = temp.left[self.orderby]
                 else:
-                    if not temp.right[orderby]:
-                        temp.right[orderby] = node
+                    if not temp.right[self.orderby]:
+                        temp.right[self.orderby] = node
                         break
-                    temp = temp.right[orderby]
+                    temp = temp.right[self.orderby]
 
-    def _max_node(self, node: Node, orderby: str) -> Node:
-        if not node.right[orderby]:
+    def _max_node(self, node: Node) -> Node:
+        if not node.right[self.orderby]:
             return node
-        return self._max_node(node.right[orderby], orderby)  # type: ignore
+        return self._max_node(node.right[self.orderby])  # type: ignore
 
-    def max_node(self, orderby: str) -> object:
+    def max_node(self) -> object:
         if self.root:
-            return self._max_node(self.root, orderby)
+            return self._max_node(self.root)
 
-    def remove_node(self, find: int | str, orderby: str) -> bool:
+    def remove_node(self, node: Node, find: str) -> bool:
         temp: Optional[Node | None] = self.root
         if temp is not None:
             prev: Node = temp
             while temp:
-                if find < temp.vars[orderby]:
-                    if temp.left[orderby] is None:
+                if find < temp.vars[self.orderby]:
+                    if temp.left[self.orderby] is None:
                         return False
                     prev = temp
-                    temp = temp.left[orderby]
+                    temp = temp.left[self.orderby]
                     continue
-                elif find > temp.vars[orderby]:
-                    if not temp.right[orderby]:
+                elif find > temp.vars[self.orderby]:
+                    if not temp.right[self.orderby]:
                         return False
                     prev = temp
-                    temp = temp.right[orderby]
+                    temp = temp.right[self.orderby]
                     continue
                 else:
-                    if not temp.left[orderby] and not temp.right[orderby]:
-                        if prev.left[orderby] is temp:
-                            prev.left[orderby] = None
-                        elif prev.right[orderby] is temp:
-                            prev.right[orderby] = None
+                    if temp is not node:
+                        prev = temp
+                        temp = temp.left[self.orderby]
+                        continue
+                    if not temp.left[self.orderby] and not temp.right[self.orderby]:
+                        if prev.left[self.orderby] is temp:
+                            prev.left[self.orderby] = None
+                        elif prev.right[self.orderby] is temp:
+                            prev.right[self.orderby] = None
                         else:
                             self.root = None
-                    elif temp.left[orderby] and not temp.right[orderby]:
-                        if prev.left[orderby] is temp:
-                            prev.left[orderby] = None
-                        elif prev.right[orderby] is temp:
-                            prev.right[orderby] = None
+                    elif temp.left[self.orderby] and not temp.right[self.orderby]:
+                        if prev.left[self.orderby] is temp:
+                            prev.left[self.orderby] = None
+                        elif prev.right[self.orderby] is temp:
+                            prev.right[self.orderby] = None
                         else:
-                            self.root = temp.left[orderby]
-                    elif not temp.left[orderby] and temp.right[orderby]:
-                        if prev.left[orderby] is temp:
-                            prev.left[orderby] = temp.right[orderby]
-                        elif prev.right[orderby] is temp:
-                            prev.right[orderby] = temp.right[orderby]
+                            self.root = temp.left[self.orderby]
+                    elif not temp.left[self.orderby] and temp.right[self.orderby]:
+                        if prev.left[self.orderby] is temp:
+                            prev.left[self.orderby] = temp.right[self.orderby]
+                        elif prev.right[self.orderby] is temp:
+                            prev.right[self.orderby] = temp.right[self.orderby]
                         else:
-                            self.root = temp.right[orderby]
+                            self.root = temp.right[self.orderby]
                     else:
-                        if temp.left[orderby]:
-                            max_node = self._max_node(temp.left[orderby], orderby)  # type: ignore
-                            temp.vars[orderby] = max_node.vars[orderby]
-                            max_node.vars[orderby] = find
+                        if temp.left[self.orderby]:
+                            max_node = self._max_node(temp.left[self.orderby])  # type: ignore
+                            temp.vars[self.orderby] = max_node.vars[self.orderby]
+                            max_node.vars[self.orderby] = find
                         prev = temp
-                        temp = temp.left[orderby]
+                        temp = temp.left[self.orderby]
                         continue
                 return True
         # Empty Tree
         return False
 
     def _find_node_rec(
-        self, find: int | str, node: Optional[Node], orderby: str
+        self, find: str, node: Optional[Node], orderby: str
     ) -> Node | None:
         if node is None or find == node.vars[orderby]:
             return node
@@ -165,18 +183,18 @@ class Tree:
         elif find < node.vars[orderby]:
             return self._find_node_rec(find, node.left[orderby], orderby)
 
-    def find_node_recursive(self, find: int | str, orderby: str) -> Node | None:
-        node: Node | None = self._find_node_rec(find, self.root, orderby=orderby)
+    def find_node_recursive(self, find: str) -> Node | None:
+        node: Node | None = self._find_node_rec(find, self.root, self.orderby)
         return node if node else None
 
-    def _count_nodes(self, node: Node | None, orderby: str, t: int = 1) -> int:
+    def _count_nodes(self, node: Node | None, t: int = 1) -> int:
         if not node:
             return 0
-        if node.left[orderby]:
-            t = self._count_nodes(node.left[orderby], orderby, t + 1)
-        if node.right[orderby]:
-            t = self._count_nodes(node.right[orderby], orderby, t + 1)
+        if node.left[self.orderby]:
+            t = self._count_nodes(node.left[self.orderby], t + 1)
+        if node.right[self.orderby]:
+            t = self._count_nodes(node.right[self.orderby], t + 1)
         return t
 
-    def count_nodes(self, orderby: str) -> int:
-        return self._count_nodes(self.root, orderby)
+    def count_nodes(self) -> int:
+        return self._count_nodes(self.root)

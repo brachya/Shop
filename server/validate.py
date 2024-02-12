@@ -8,8 +8,8 @@ class Validate:
         self.last_name: str = customer[1]
         self.id: str = customer[2]
         self.phone: str = customer[3]
-        self.dept: str = customer[4]
-        self.date: str = customer[5]
+        self.date: str = customer[4]
+        self.dept: str = customer[5]
         self.error: str = ""  # for False case
 
     def first_name_validate(self) -> None:
@@ -25,10 +25,10 @@ class Validate:
     def id_validate(self) -> None:
         self.error += "id digits only.\n" if not self.id.isdigit() else ""
         self.error += (
-            f"missing {9 - len(self.id)} numbers.\n" if not len(self.id) < 9 else ""
+            f"missing {9 - len(self.id)} numbers.\n" if len(self.id) < 9 else ""
         )
         self.error += (
-            f"unnecessary {len(self.id) - 9} numbers.\n" if not len(self.id) > 9 else ""
+            f"unnecessary {len(self.id) - 9} numbers.\n" if len(self.id) > 9 else ""
         )
 
     def phone_validate(self) -> None:
@@ -69,7 +69,13 @@ class Validate:
         self.error += f"month only between 1 to 12." if not 1 <= month <= 12 else ""
         self.error += f"year only between 0 to 9999." if not 0 <= year <= 9999 else ""
 
-    def checked(self) -> str:
+    def checked(self) -> list[str]:
+        self.first_name_validate()
+        self.last_name_validate()
+        self.id_validate()
+        self.phone_validate()
+        self.date_validate()
+        self.dept_validate()
         if not self.error:
-            return "True"
-        return self.error
+            return ["true"]
+        return [self.error]

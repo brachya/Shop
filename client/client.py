@@ -1,13 +1,13 @@
 import socket
 from threading import Thread
 
-ip = "127.0.0.1"
-p = 34500
-c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-c.connect((ip, p))
+IP = "127.0.0.1"
+PORT = 34500
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((IP, PORT))
 
 
-def recieving(client_socket: socket.socket):
+def receiving(client_socket: socket.socket):
     while True:
         try:
             print(client_socket.recv(1024).decode())
@@ -15,14 +15,18 @@ def recieving(client_socket: socket.socket):
             break
 
 
-Thread(target=recieving, args=(c,)).start()
+Thread(target=receiving, args=(client_socket,)).start()
 while True:
     mess = input("==> ")
+    if mess.startswith("set"):
+        if not mess.count(",") == 5 or not mess.count("=") == 6:
+            print("missing ',' or '='.")
+            continue
     try:
-        c.sendall(mess.encode())
+        client_socket.sendall(mess.encode())
     except ConnectionResetError:
         print("500 server shuted off")
         break
     if mess == "bye":
         break
-c.close()
+client_socket.close()

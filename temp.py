@@ -9,6 +9,20 @@
 # print(type(cli_add[1]))
 
 
-print("s".isalnum())
-a = {"a": "ak", "b": "bk"}
-print(list(a.items()))
+# print("s".isalnum())
+# a = {"a": "ak", "b": "bk"}
+# print(list(a.items()))
+# class A:
+#     def __init__(self, a: str) -> None:
+#         self._a = a
+
+#     def __str__(self) -> str:
+#         return f"hello {self._a}"
+
+
+# a = A("n")
+# print(a)
+# b = [a]
+# print(b)
+print(3 < 4)
+print("3b" > "3a")
