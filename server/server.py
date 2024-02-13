@@ -68,6 +68,8 @@ class ShopServer:
     ) -> None:
         customer.dept = str(int(customer.dept) + int(new_details[5]))
         customer.date = str(new_details[4])
+        customer.vars["dept"] = customer.dept
+        customer.vars["date"] = customer.date
         if not start:
             self.tree_by_dept.remove_node(customer, customer.dept)
             self.tree_by_date.remove_node(customer, customer.date)
@@ -102,10 +104,14 @@ class ShopServer:
             cli_sock, cli_add = self.server_socket.accept()
         except ConnectionResetError:
             quit()
+        except OSError:
+            quit()
         else:
             print(f"Client {cli_add} connected")
             self.clients.append(cli_sock)
-            Thread(target=self.connection_handle, args=(cli_sock, cli_add)).start()
+            Thread(
+                target=self.connection_handle, args=(cli_sock, cli_add), daemon=True
+            ).start()
 
     def csv_import(self, binary_tree: Tree, orderby: str) -> bool:
         print(f"csv importing to {orderby}")
@@ -183,6 +189,7 @@ class ShopServer:
             except ConnectionResetError:
                 print(f"{client_address} shuted off")
                 break
+
             if message.startswith("select"):
                 message = message.split()
                 result: Node | None = self.tree_by_name.find_node_recursive(message[1])
@@ -191,6 +198,7 @@ class ShopServer:
                 else:
                     client_socket.sendall("result".encode())
                 continue
+
             elif message.startswith("set"):
                 message = message[4:]
                 valid: list[str] = self.validation(message)
@@ -205,6 +213,7 @@ class ShopServer:
                     continue
                 self.set_new_customer(valid)
                 client_socket.sendall("customer successfully added.".encode())
+
             elif message.startswith("print"):
                 message = message.split()
                 if len(message) == 2:
@@ -213,6 +222,10 @@ class ShopServer:
                     all_customers = self.tree_by_name.print_tree()
                 if all_customers:
                     client_socket.sendall(all_customers.encode())
+
+            elif message.startswith("goodbye"):
+                self.server_socket.close()
+                print("Server shuting off")
 
 
 if __name__ == "__main__":

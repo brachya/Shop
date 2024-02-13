@@ -33,10 +33,13 @@ class Node:
             "date": None,
             "dept": None,
         }
-        self.vars = locals()
+        self.vars: dict[str, str] = locals()
 
     def __str__(self) -> str:
         return f"{self.name} {self.last_name} {self.identity} {self.phone} {self.date} {self.dept}"
+
+    # def vars_reset(self) -> None:
+    #     self.vars = locals()
 
 
 class Tree:

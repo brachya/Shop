@@ -80,7 +80,7 @@ class Client:
             except ConnectionResetError:
                 print("500 server shuted off")
                 break
-            if mess == "bye":
+            if mess == "bye" or mess == "goodbye":
                 break
 
 
