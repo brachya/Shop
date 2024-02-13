@@ -7,7 +7,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((IP, PORT))
 
 
-def receiving(client_socket: socket.socket):
+def receiving(client_socket: socket.socket) -> None:
     while True:
         try:
             print(client_socket.recv(1024).decode())
@@ -15,18 +15,49 @@ def receiving(client_socket: socket.socket):
             break
 
 
+def set_check(mess: str) -> bool:
+    equation: int = mess.count("=")
+    comma: int = mess.count(",")
+    if equation != 6 or comma != 5:
+        print(f"missing {comma - 5} ',' or {equation - 6} '='.")
+        return False
+    checking = mess[4:].split(",")
+    checking = [val.split("=") for val in checking]
+    checking = [prompt[0] for prompt in checking]
+    error: list[str] = []
+    if checking[0] != "first name":
+        error.append("did you mean first name")
+    if checking[1] != "last name":
+        error.append("did you mean last name")
+    if checking[2] != "id":
+        error.append("did you mean id")
+    if checking[3] != "phone":
+        error.append("did you mean phone")
+    if checking[4] != "date":
+        error.append("did you mean dept")
+    if checking[5] != "dept":
+        error.append("did you mean dept")
+    if error:
+        [print(warning) for warning in error]
+        return False
+    return True
+
+
+def sending(client_socket: socket.socket) -> None:
+    while True:
+        mess = input("==> ")
+        if mess.startswith("set"):
+            if not set_check(mess):
+                continue
+        try:
+            client_socket.sendall(mess.encode())
+        except ConnectionResetError:
+            print("500 server shuted off")
+            break
+        if mess == "bye":
+            break
+
+
 Thread(target=receiving, args=(client_socket,)).start()
-while True:
-    mess = input("==> ")
-    if mess.startswith("set"):
-        if not mess.count(",") == 5 or not mess.count("=") == 6:
-            print("missing ',' or '='.")
-            continue
-    try:
-        client_socket.sendall(mess.encode())
-    except ConnectionResetError:
-        print("500 server shuted off")
-        break
-    if mess == "bye":
-        break
+Thread(target=sending, args=(client_socket,)).start()
 client_socket.close()

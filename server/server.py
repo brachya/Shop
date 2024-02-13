@@ -142,9 +142,12 @@ class ShopServer:
                 self.trees[tree].add_node(node)
 
     def fix_file(self, all: list[list[str | int] | str]) -> None:
+        empty = 0
         for a in all:
             if a == "":
-                all.remove(a)
+                empty += 1
+        for _ in range(empty):
+            all.remove("")
         with open(self.file_path, "w", encoding="UTF-8") as csv:  # encoding for hebrew
             for a in all:
                 csv.write(a + "\n")  # type: ignore

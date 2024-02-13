@@ -45,14 +45,14 @@ class Tree:
         self.root: Optional[Node] = None
         self.orderby: str = orderby
 
-    def _nodes(self, node: Node, lst_return: list[Node]) -> None:
+    def _nodes(self, node: Optional[Node], lst_return: list[Node]) -> None:
         if not node:
             return
         if node.left[self.orderby]:
-            self._nodes(node.left[self.orderby], lst_return)  # type: ignore
+            self._nodes(node.left[self.orderby], lst_return)
         lst_return.append(node)
         if node.right[self.orderby]:
-            self._nodes(node.right[self.orderby], lst_return)  # type: ignore
+            self._nodes(node.right[self.orderby], lst_return)
 
     def nodes(self) -> list[Node]:
         lst_return: list[Node] = []
@@ -60,11 +60,13 @@ class Tree:
             self._nodes(self.root, lst_return)
         return lst_return
 
-    def _print_tree(self, node: Node, lst_return: list[dict[str, str]]) -> None:
+    def _print_tree(
+        self, node: Optional[Node], lst_return: list[dict[str, str]]
+    ) -> None:
         if not node:
             return
         if node.left[self.orderby]:
-            self._print_tree(node.left[self.orderby], lst_return)  # type: ignore
+            self._print_tree(node.left[self.orderby], lst_return)
         lst_return.append(
             {
                 "first name": node.name,
@@ -76,7 +78,7 @@ class Tree:
             }
         )
         if node.right[self.orderby]:
-            self._print_tree(node.right[self.orderby], lst_return)  # type: ignore
+            self._print_tree(node.right[self.orderby], lst_return)
 
     def print_tree(self) -> str | None:
         if self.root:
