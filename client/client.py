@@ -15,15 +15,18 @@ def receiving(client_socket: socket.socket) -> None:
             break
 
 
-def set_check(mess: str) -> bool:
+def set_check(mess: str) -> list[str]:
     equation: int = mess.count("=")
     comma: int = mess.count(",")
     if equation != 6 or comma != 5:
         print(f"missing {comma - 5} ',' or {equation - 6} '='.")
-        return False
+        return ["false"]
     checking = mess[4:].split(",")
     checking = [val.split("=") for val in checking]
+    data = [prompt[1] for prompt in checking]
+    data = [" ".join(p.split()) for p in data]
     checking = [prompt[0] for prompt in checking]
+    checking = [" ".join(p.split()) for p in checking]
     error: list[str] = []
     if checking[0] != "first name":
         error.append("did you mean first name")
@@ -39,18 +42,23 @@ def set_check(mess: str) -> bool:
         error.append("did you mean dept")
     if error:
         [print(warning) for warning in error]
-        return False
-    return True
+        return ["false"]
+    message = ""
+    for n in range(6):
+        message += f",{checking[n]}={data[n]}"
+    message = "set " + message[1:]
+    return ["true"] + [message]
 
 
 def sending(client_socket: socket.socket) -> None:
     while True:
         mess = input("==> ")
         if mess.startswith("set"):
-            if not set_check(mess):
+            check = set_check(mess)
+            if check[0] == "false":
                 continue
+            mess = check[1]
         try:
-            print(mess)
             client_socket.sendall(mess.encode())
         except ConnectionResetError:
             print("500 server shuted off")
