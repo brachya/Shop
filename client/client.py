@@ -50,6 +50,7 @@ def sending(client_socket: socket.socket) -> None:
             if not set_check(mess):
                 continue
         try:
+            print(mess)
             client_socket.sendall(mess.encode())
         except ConnectionResetError:
             print("500 server shuted off")
@@ -60,4 +61,3 @@ def sending(client_socket: socket.socket) -> None:
 
 Thread(target=receiving, args=(client_socket,)).start()
 Thread(target=sending, args=(client_socket,)).start()
-client_socket.close()
