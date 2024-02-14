@@ -81,7 +81,7 @@ class ShopServer:
             self.tree_by_date.add_node(customer)
 
     def add_line_to_file(self, customer_details: list[str]) -> None:
-        with open(self.file_path, "a", encoding="UTF-8") as fw:
+        with open(self.file_path, "a+", encoding="UTF-8") as fw:
             fw.write(
                 f"{customer_details[0]},{customer_details[1]},{int(customer_details[2])},{int(customer_details[3])},{customer_details[4]},{int(customer_details[5])}\n"
             )
@@ -115,7 +115,11 @@ class ShopServer:
 
     def csv_import(self, binary_tree: Tree, orderby: str) -> bool:
         print(f"csv importing to {orderby}")
-        customers = self.open_file()
+        try:
+            customers = self.open_file()
+        except FileNotFoundError:
+            print("FileNotFound")
+            return False
         if customers == [["empty"]]:
             return False  # in case that there is no values
         for customer in customers:
@@ -136,6 +140,7 @@ class ShopServer:
         return True
 
     def tree_to_tree(self) -> None:
+
         if not self.csv_import(self.tree_by_id, "identity"):
             print("No customers")
             return
@@ -154,7 +159,7 @@ class ShopServer:
                 empty += 1
         for _ in range(empty):
             all.remove("")
-        with open(self.file_path, "w", encoding="UTF-8") as csv:  # encoding for hebrew
+        with open(self.file_path, "w+", encoding="UTF-8") as csv:  # encoding for hebrew
             for a in all:
                 csv.write(a + "\n")  # type: ignore
 
@@ -222,6 +227,8 @@ class ShopServer:
                     all_customers = self.tree_by_name.print_tree()
                 if all_customers:
                     client_socket.sendall(all_customers.encode())
+                else:
+                    client_socket.sendall("No Customers".encode())
 
             elif message.startswith("goodbye"):
                 self.server_socket.close()
