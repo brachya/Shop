@@ -178,11 +178,16 @@ class ShopServer:
         customer_lst: list[str] = customer.split(",")
         fn: str = customer_lst[0]
         ln: str = customer_lst[1]
-        identity: str = customer_lst[2]
-        phn: str = customer_lst[3]
+        identity: str = self.zero_add(customer_lst[2], 9)
+        phn: str = "0" + customer_lst[3]
         dt: str = customer_lst[4]
         dp: str = customer_lst[5]
         return [fn, ln, identity, phn, dt, dp]
+
+    def zero_add(self, val: str, length: int) -> str:
+        while len(val) != length:
+            val = "0" + val
+        return val
 
     def operate(self, mess: str) -> str | None:
         """return the operator"""
@@ -226,12 +231,13 @@ class ShopServer:
                     continue
                 valid = valid[1:]  # cut the 'true'
                 customer_exist = self.tree_by_id.find_node_recursive(valid[2])
-                if customer_exist:
-                    resp = self.customer_exist_update(valid, customer_exist)
-                    client_socket.sendall(resp.encode())
-                    continue
-                self.set_new_customer(valid)
-                client_socket.sendall("customer successfully added.".encode())
+                with self.MUTEX:
+                    if customer_exist:
+                        resp = self.customer_exist_update(valid, customer_exist)
+                        client_socket.sendall(resp.encode())
+                        continue
+                    self.set_new_customer(valid)
+                    client_socket.sendall("customer successfully added.".encode())
 
             elif message.startswith("print"):
                 message = message.split()
@@ -261,8 +267,9 @@ class ShopServer:
 
 
 if __name__ == "__main__":
-    sys.argv
-    # shop = ShopServer(sys.argv[1])
-    shop = ShopServer("C:\\Studies\\Final_Project\\server\\db.csv")
+    if len(sys.argv) > 1:
+        shop = ShopServer(sys.argv[1])
+    else:
+        shop = ShopServer("C:\\Studies\\Final_Project\\server\\db.csv")
     while True:
         shop.start_connection()
