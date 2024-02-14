@@ -38,6 +38,17 @@ class Node:
     def __str__(self) -> str:
         return f"{self.name} {self.last_name} {self.identity} {self.phone} {self.date} {self.dept}"
 
+    @property
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "first name": self.name,
+            "last name": self.last_name,
+            "id": self.identity,
+            "phone": self.phone,
+            "date": self.date,
+            "dept": self.dept,
+        }
+
     # def vars_reset(self) -> None:
     #     self.vars = locals()
 
@@ -70,16 +81,7 @@ class Tree:
             return
         if node.left[self.orderby]:
             self._print_tree(node.left[self.orderby], lst_return)
-        lst_return.append(
-            {
-                "first name": node.name,
-                "last name": node.last_name,
-                "id": node.identity,
-                "phone": node.phone,
-                "date": node.date,
-                "dept": node.dept,
-            }
-        )
+        lst_return.append(node.to_dict)
         if node.right[self.orderby]:
             self._print_tree(node.right[self.orderby], lst_return)
 
@@ -97,15 +99,97 @@ class Tree:
                 place += 1
             return to_send
 
-    def select_from(self, value: str) -> str:
-        found = self.find_node_recursive(value)
+    def _select_equal(
+        self, value: str, node: Optional[Node], lst_return: list[dict[str, str]]
+    ) -> None:
+        if not node:
+            return
+        if value == node.vars[self.orderby]:
+            lst_return.append(node.to_dict)
+        if value > node.vars[self.orderby]:
+            if node.right[self.orderby]:
+                self._select_equal(value, node.right[self.orderby], lst_return)
+        else:
+            if node.left[self.orderby]:
+                self._select_equal(value, node.left[self.orderby], lst_return)
+
+    def _select_non_equal(
+        self, value: str, node: Optional[Node], lst_return: list[dict[str, str]]
+    ) -> None:
+        if not node:
+            return
+        if node.left[self.orderby]:
+            self._select_non_equal(value, node.left[self.orderby], lst_return)
+        if value != node.vars[self.orderby]:
+            lst_return.append(node.to_dict)
+        if node.right[self.orderby]:
+            self._select_non_equal(value, node.right[self.orderby], lst_return)
+
+    def _select_above(
+        self,
+        value: str,
+        node: Optional[Node],
+        lst_return: list[dict[str, str]],
+        exist: bool = False,
+    ) -> None:
+        if not node:
+            return
+        if not exist:
+            if node.vars[self.orderby] < value:
+                if node.right[self.orderby]:
+
+                    self._select_above(
+                        value, node.right[self.orderby], lst_return, exist
+                    )
+            elif node.vars[self.orderby] > value:
+                if node.left[self.orderby]:
+                    self._select_above(
+                        value, node.left[self.orderby], lst_return, exist
+                    )
+                lst_return.append(node.to_dict)
+                if node.right[self.orderby]:
+                    self._select_above(
+                        value, node.right[self.orderby], lst_return, True
+                    )
+            else:
+                if node.right[self.orderby]:
+                    self._select_above(
+                        value, node.right[self.orderby], lst_return, True
+                    )
+        else:
+            if node.left[self.orderby]:
+                self._select_above(value, node.left[self.orderby], lst_return, exist)
+            lst_return.append(node.to_dict)
+            if node.right[self.orderby]:
+                self._select_above(value, node.right[self.orderby], lst_return, exist)
+
+    def _select_under(
+        self, value: str, node: Optional[Node], lst_return: list[dict[str, str]]
+    ) -> None:
+        if not node:
+            return
+        if node.left[self.orderby]:
+            self._select_under(value, node.left[self.orderby], lst_return)
+        if node.vars[self.orderby] < value:
+            lst_return.append(node.to_dict)
+            if node.right[self.orderby]:
+                self._select_under(value, node.right[self.orderby], lst_return)
+
+    def select_from(self, value: str, operate: str) -> str:
+        found: list[dict[str, str]] = []
+        if operate == ">":
+            self._select_above(value, self.root, found)
+        elif operate == "<":
+            self._select_under(value, self.root, found)
+        elif operate == "=":
+            self._select_equal(value, self.root, found)
+        else:
+            self._select_non_equal(value, self.root, found)
         if not found:
             return "No values"
-        to_str: list[dict[str, str]] = []
-        self._print_tree(found, to_str)
         place = 1
         to_send: str = ""
-        for diction in to_str:
+        for diction in found:
             x = ""
             for item in list(diction.items()):
                 x += f"{item[0]} = {str(item[1])} "

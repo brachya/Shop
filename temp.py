@@ -12,17 +12,20 @@
 # print("s".isalnum())
 # a = {"a": "ak", "b": "bk"}
 # print(list(a.items()))
-# class A:
-#     def __init__(self, a: str) -> None:
-#         self._a = a
-
-#     def __str__(self) -> str:
-#         return f"hello {self._a}"
 
 
-# a = A("n")
-# print(a)
-# b = [a]
-# print(b)
-print(3 < 4)
-print("3b" > "3a")
+class A:
+    def __init__(self, a: str) -> None:
+        self._a = a
+
+    def __str__(self) -> str:
+        print(f"hello {self._a}")
+        return ""
+
+
+a = A("n")
+print(a)
+b = [a]
+print(b)
+# print(3 < 4)
+# print("3b" > "3a")

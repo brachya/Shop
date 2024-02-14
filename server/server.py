@@ -204,6 +204,10 @@ class ShopServer:
     def trimer(self, word: str) -> str:
         return " ".join(word.split())
 
+    def send_to_client(self, client_socket: socket.socket, message: str) -> None:
+        client_socket.sendall(message.encode())
+        client_socket.sendall("&%^$*$(#)@!".encode())
+
     def connection_handle(
         self, client_socket: socket.socket, client_address: tuple[str, int]
     ) -> None:
@@ -214,30 +218,21 @@ class ShopServer:
                 print(f"{client_address} shuted off")
                 break
 
-            if message.startswith("select"):
-                message = message.split()
-                result: Node | None = self.tree_by_name.find_node_recursive(message[1])
-                if not result:
-                    client_socket.sendall("No Result".encode())
-                else:
-                    client_socket.sendall("result".encode())
-                continue
-
-            elif message.startswith("set"):
+            if message.startswith("set"):
                 message = message[4:]
                 valid: list[str] = self.validation(message)
                 if valid[0] != "true":
-                    client_socket.sendall(valid[0].encode())
+                    self.send_to_client(client_socket, valid[0])
                     continue
                 valid = valid[1:]  # cut the 'true'
                 customer_exist = self.tree_by_id.find_node_recursive(valid[2])
                 with self.MUTEX:
                     if customer_exist:
                         resp = self.customer_exist_update(valid, customer_exist)
-                        client_socket.sendall(resp.encode())
+                        self.send_to_client(client_socket, resp)
                         continue
                     self.set_new_customer(valid)
-                    client_socket.sendall("customer successfully added.".encode())
+                    self.send_to_client(client_socket, "customer successfully added.")
 
             elif message.startswith("print"):
                 message = message.split()
@@ -246,9 +241,9 @@ class ShopServer:
                 else:
                     all_customers = self.tree_by_name.print_tree()
                 if all_customers:
-                    client_socket.sendall(all_customers.encode())
+                    self.send_to_client(client_socket, all_customers)
                 else:
-                    client_socket.sendall("No Customers".encode())
+                    self.send_to_client(client_socket, "No Customers")
 
             elif message.startswith("goodbye"):
                 self.server_socket.close()
@@ -258,12 +253,14 @@ class ShopServer:
                 message = message[7:]
                 operate: str | None = self.operate(message)
                 if not operate:
-                    client_socket.sendall("Operator not found!".encode())
+                    self.send_to_client(client_socket, "Operator not found!")
                     continue
-                message.split(operate)
+                message = message.split(operate)
                 message = [self.trimer(w) for w in message]
-                all_customers = self.trees[message[0].lower()].select_from(message[1])
-                client_socket.sendall(all_customers.encode())
+                all_customers = self.trees[message[0].lower()].select_from(
+                    message[1], operate
+                )
+                self.send_to_client(client_socket, all_customers)
 
 
 if __name__ == "__main__":

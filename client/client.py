@@ -29,7 +29,14 @@ class Client:
     def receiving(self) -> None:
         while True:
             try:
-                print(self.client_socket.recv(1024).decode())
+                message: str = self.client_socket.recv(1024).decode()
+                print(message, end="")
+                while True:
+                    message: str = self.client_socket.recv(1024).decode()
+                    if message.endswith("&%^$*$(#)@!"):
+                        print(message[:-11])
+                        break
+                    print(message, end="")
             except:
                 break
 
@@ -70,14 +77,51 @@ class Client:
         message = "set " + message[1:]
         return ["true"] + [message]
 
+    def select_check(self, mess: str) -> list[str]:
+        operate = self.operate(mess)
+        checking = mess[7:].split(operate)
+        data = [prompt[1] for prompt in checking]
+        data = [" ".join(p.split()) for p in data]
+        checking = [prompt[0] for prompt in checking]
+        checking = " ".join([" ".join(p.split()) for p in checking])
+        if checking not in [
+            "first name",
+            "last name",
+            "identity",
+            "phone",
+            "date",
+            "dept",
+        ]:
+            print("wrong parameter")
+            return ["false"]
+        return ["true"] + [mess]
+
+    def operate(self, mess: str) -> str | None:
+        """return the operator"""
+        if "!=" in mess:
+            return "!="
+        elif "<" in mess:
+            return "<"
+        elif ">" in mess:
+            return ">"
+        elif "=" in mess:
+            return "="
+        return None
+
+    def trimer(self, word: str) -> str:
+        return " ".join(word.split())
+
     def sending(self) -> None:
         while True:
             mess = input("==> ")
+            check: list[str] = ["false"]
             if mess.startswith("set"):
                 check = self.set_check(mess)
-                if check[0] == "false":
-                    continue
-                mess = check[1]
+            elif mess.startswith("select"):
+                check = self.select_check(mess)
+            if check[0] == "false":
+                continue
+            mess = check[1]
             try:
                 self.client_socket.sendall(mess.encode())
             except ConnectionResetError:
