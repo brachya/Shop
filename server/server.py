@@ -129,12 +129,12 @@ class ShopServer:
                 continue
             binary_tree.add_node(
                 Node(
-                    customer[0],  # type: ignore
-                    customer[1],  # type: ignore
-                    customer[2],  # type: ignore
-                    customer[3],  # type: ignore
-                    customer[4],  # type: ignore
-                    customer[5],  # type: ignore
+                    customer[0],
+                    customer[1],
+                    customer[2],
+                    customer[3],
+                    customer[4],
+                    customer[5],
                 )
             )
         return True
@@ -151,7 +151,7 @@ class ShopServer:
             for node in all_nodes:
                 self.trees[tree].add_node(node)
 
-    def fix_file(self, all: list[list[str | int] | str]) -> None:
+    def fix_file(self, all: list[str]) -> None:
         empty = 0
         for a in all:
             if a == "":
@@ -160,13 +160,13 @@ class ShopServer:
             all.remove("")
         with open(self.file_path, "w+", encoding="UTF-8") as csv:  # encoding for hebrew
             for a in all:
-                csv.write(a + "\n")  # type: ignore
+                csv.write(a + "\n")
 
     def open_file(self) -> list[list[str]]:
         with open(self.file_path, "r", encoding="UTF-8") as csv:  # encoding for hebrew
             non_ordered_data: list[str] = csv.read().split("\n")
             if "" in non_ordered_data:
-                self.fix_file(non_ordered_data)  # type: ignore
+                self.fix_file(non_ordered_data)
                 if "" in non_ordered_data:
                     return [["empty"]]
             data: list[list[str]] = [
@@ -183,6 +183,21 @@ class ShopServer:
         dt: str = customer_lst[4]
         dp: str = customer_lst[5]
         return [fn, ln, identity, phn, dt, dp]
+
+    def operate(self, mess: str) -> str | None:
+        """return the operator"""
+        if "!=" in mess:
+            return "!="
+        elif "<" in mess:
+            return "<"
+        elif ">" in mess:
+            return ">"
+        elif "=" in mess:
+            return "="
+        return None
+
+    def trimer(self, word: str) -> str:
+        return " ".join(word.split())
 
     def connection_handle(
         self, client_socket: socket.socket, client_address: tuple[str, int]
@@ -234,7 +249,15 @@ class ShopServer:
                 print("Server shuting off")
 
             elif message.startswith("select"):
-                pass
+                message = message[7:]
+                operate: str | None = self.operate(message)
+                if not operate:
+                    client_socket.sendall("Operator not found!".encode())
+                    continue
+                message.split(operate)
+                message = [self.trimer(w) for w in message]
+                all_customers = self.trees[message[0].lower()].select_from(message[1])
+                client_socket.sendall(all_customers.encode())
 
 
 if __name__ == "__main__":

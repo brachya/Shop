@@ -97,6 +97,22 @@ class Tree:
                 place += 1
             return to_send
 
+    def select_from(self, value: str) -> str:
+        found = self.find_node_recursive(value)
+        if not found:
+            return "No values"
+        to_str: list[dict[str, str]] = []
+        self._print_tree(found, to_str)
+        place = 1
+        to_send: str = ""
+        for diction in to_str:
+            x = ""
+            for item in list(diction.items()):
+                x += f"{item[0]} = {str(item[1])} "
+            to_send += f"{place}. {x}\n"
+            place += 1
+        return to_send
+
     def add_node(self, node: Node) -> None:
         if not self.root:
             self.root = node
