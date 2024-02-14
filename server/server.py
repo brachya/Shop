@@ -49,9 +49,9 @@ class ShopServer:
 
     def customer_exist_update(self, new_details: list[str], customer: Node) -> str:
         error = ""
-        if new_details[0] != customer.name:
+        if new_details[0].capitalize() != customer.name:
             error += f"did you mean {customer.name}"
-        if new_details[1] != customer.last_name:
+        if new_details[1].capitalize() != customer.last_name:
             error += (
                 f" {customer.last_name}"
                 if error
@@ -83,13 +83,13 @@ class ShopServer:
     def add_line_to_file(self, customer_details: list[str]) -> None:
         with open(self.file_path, "a+", encoding="UTF-8") as fw:
             fw.write(
-                f"{customer_details[0]},{customer_details[1]},{int(customer_details[2])},{int(customer_details[3])},{customer_details[4]},{int(customer_details[5])}\n"
+                f"{customer_details[0].capitalize()},{customer_details[1].capitalize()},{int(customer_details[2])},{int(customer_details[3])},{customer_details[4]},{int(customer_details[5])}\n"
             )
 
     def set_new_customer(self, customer_details: list[str]) -> None:
         customer = Node(
-            customer_details[0],
-            customer_details[1],
+            customer_details[0].capitalize(),
+            customer_details[1].capitalize(),
             customer_details[2],
             customer_details[3],
             customer_details[4],
@@ -140,7 +140,6 @@ class ShopServer:
         return True
 
     def tree_to_tree(self) -> None:
-
         if not self.csv_import(self.tree_by_id, "identity"):
             print("No customers")
             return
@@ -233,6 +232,9 @@ class ShopServer:
             elif message.startswith("goodbye"):
                 self.server_socket.close()
                 print("Server shuting off")
+
+            elif message.startswith("select"):
+                pass
 
 
 if __name__ == "__main__":

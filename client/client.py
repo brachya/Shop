@@ -33,6 +33,20 @@ class Client:
             except:
                 break
 
+    def key_check(self, keys: list[str], error: list[str]) -> None:
+        if keys[0] != "first name":
+            error.append("did you mean first name")
+        if keys[1] != "last name":
+            error.append("did you mean last name")
+        if keys[2] != "id":
+            error.append("did you mean id")
+        if keys[3] != "phone":
+            error.append("did you mean phone")
+        if keys[4] != "date":
+            error.append("did you mean dept")
+        if keys[5] != "dept":
+            error.append("did you mean dept")
+
     def set_check(self, mess: str) -> list[str]:
         equation: int = mess.count("=")
         comma: int = mess.count(",")
@@ -46,18 +60,7 @@ class Client:
         checking = [prompt[0] for prompt in checking]
         checking = [" ".join(p.split()) for p in checking]
         error: list[str] = []
-        if checking[0] != "first name":
-            error.append("did you mean first name")
-        if checking[1] != "last name":
-            error.append("did you mean last name")
-        if checking[2] != "id":
-            error.append("did you mean id")
-        if checking[3] != "phone":
-            error.append("did you mean phone")
-        if checking[4] != "date":
-            error.append("did you mean dept")
-        if checking[5] != "dept":
-            error.append("did you mean dept")
+        self.key_check(checking, error)
         if error:
             [print(warning) for warning in error]
             return ["false"]
