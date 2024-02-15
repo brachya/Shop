@@ -51,7 +51,7 @@ class Client:
         """get list of parameter and validate that it is the correct values"""
         if keys[0] != "first name":
             error.append("did you mean first name")
-        if keys[1] != "last name":
+        if keys[1] not in ["last name", "second name"]:
             error.append("did you mean last name")
         if keys[2] not in ["id", "identity"]:
             error.append("did you mean id")
@@ -84,25 +84,55 @@ class Client:
         message = "set " + message[1:]
         return ["true", message]
 
+    def is_value_fit(self, param: str, data: str) -> str | None:
+        if param == "name":
+            if not data.isalpha():
+                return "value only letters"
+        elif param == "last name":
+            if not data.isalpha():
+                return "value only letters"
+        elif param == "id" or param == "identity":
+            if not data.isdigit():
+                return "value only numbers"
+        elif param == "phone":
+            if not data.isdigit():
+                return "value only numbers"
+        elif param == "date":
+            if not data.isalnum():
+                return "value only numbers and signs"
+        elif param == "dept":
+            if data[0] == "-":
+                if not data[1:].isdigit():
+                    return "value can hold '-' at start but numbers came after"
+            else:
+                if not data.isdigit():
+                    return "value can hold '-' at start but numbers came after"
+
     def select_check(self, mess: str) -> list[str]:
         """checks the parameters in select commands"""
         my_operator: str | None = self.my_operate_get(mess)
         if my_operator is None:
             return ["false", "No operator!"]
         checking = mess[7:].split(my_operator)
-        if len(checking) < 2:
+        if len(checking) < 2 or checking[1].replace(" ", "") == "":
             return ["false", "No Value"]
         data = self.trimer(checking[1])
         checking = self.trimer(checking[0])
         if checking not in [
-            "first name",
+            "name",
             "last name",
             "identity",
+            "id",
             "phone",
             "date",
             "dept",
         ]:
             return ["false", "wrong parameter"]
+        error = self.is_value_fit(checking, data)
+        if error:
+            return ["false", error]
+        checking = "last_name" if checking == "last name" else checking
+        checking = "identity" if checking == "id" else checking
         return ["true", f"select {checking} {my_operator} {data}"]
 
     def my_operate_get(self, mess: str) -> str | None:
@@ -131,11 +161,11 @@ class Client:
             elif mess.startswith("select"):
                 check = self.select_check(mess)
             elif mess.startswith("print"):
-                check = ["true"] + [mess]
+                check = ["true", mess]
             elif mess.startswith("quit") or mess.startswith("goodbye"):
-                check = ["true"] + [mess]
+                check = ["true", mess]
             else:
-                check = ["false"] + ["Command not available"]
+                check = ["false", "Command not available"]
             if check[0] == "false":
                 print(check[1])
                 continue
