@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 
 class Node:
@@ -9,14 +9,14 @@ class Node:
         identity: str,
         phone: str,
         date: str,
-        dept: str,
+        dept: int,
     ) -> None:
         self.name = name
         self.last_name = last_name
         self.identity = identity
         self.phone = phone
         self.date = date
-        self.dept = dept
+        self.dept: int = dept
         self.left: dict[str, Node | None] = {
             "name": None,
             "last_name": None,
@@ -33,7 +33,7 @@ class Node:
             "date": None,
             "dept": None,
         }
-        self.vars: dict[str, str] = locals()
+        self.vars: dict[str, Union[str, int]] = locals()
 
     def __str__(self) -> str:
         return f"{self.name} {self.last_name} {self.identity} {self.phone} {self.date} {self.dept}"
@@ -46,7 +46,7 @@ class Node:
             "id": self.identity,
             "phone": self.phone,
             "date": self.date,
-            "dept": self.dept,
+            "dept": str(self.dept),
         }
 
     # def vars_reset(self) -> None:
@@ -104,9 +104,11 @@ class Tree:
     ) -> None:
         if not node:
             return
+        if type(node.vars[self.orderby]) == int:
+            value = int(value)  # type: ignore
         if value == node.vars[self.orderby]:
             lst_return.append(node.to_dict)
-        if value > node.vars[self.orderby]:
+        if value > node.vars[self.orderby]:  # type: ignore
             if node.right[self.orderby]:
                 self._select_equal(value, node.right[self.orderby], lst_return)
         else:
@@ -118,6 +120,8 @@ class Tree:
     ) -> None:
         if not node:
             return
+        if type(node.vars[self.orderby]) == int:
+            value = int(value)  # type: ignore
         if node.left[self.orderby]:
             self._select_non_equal(value, node.left[self.orderby], lst_return)
         if value != node.vars[self.orderby]:
@@ -134,14 +138,16 @@ class Tree:
     ) -> None:
         if not node:
             return
+        if type(node.vars[self.orderby]) == int:
+            value = int(value)  # type: ignore
         if not exist:
-            if node.vars[self.orderby] < value:
+            if node.vars[self.orderby] < value:  # type: ignore
                 if node.right[self.orderby]:
 
                     self._select_above(
                         value, node.right[self.orderby], lst_return, exist
                     )
-            elif node.vars[self.orderby] > value:
+            elif node.vars[self.orderby] > value:  # type: ignore
                 if node.left[self.orderby]:
                     self._select_above(
                         value, node.left[self.orderby], lst_return, exist
@@ -168,9 +174,11 @@ class Tree:
     ) -> None:
         if not node:
             return
+        if type(node.vars[self.orderby]) == int:
+            value = int(value)  # type: ignore
         if node.left[self.orderby]:
             self._select_under(value, node.left[self.orderby], lst_return)
-        if node.vars[self.orderby] < value:
+        if node.vars[self.orderby] < value:  # type: ignore
             lst_return.append(node.to_dict)
             if node.right[self.orderby]:
                 self._select_under(value, node.right[self.orderby], lst_return)
@@ -203,7 +211,7 @@ class Tree:
         else:
             temp = self.root
             while temp:
-                if node.vars[self.orderby] <= temp.vars[self.orderby]:
+                if node.vars[self.orderby] <= temp.vars[self.orderby]:  # type: ignore
                     if not temp.left[self.orderby]:
                         temp.left[self.orderby] = node
                         break
@@ -223,18 +231,18 @@ class Tree:
         if self.root:
             return self._max_node(self.root)
 
-    def remove_node(self, node: Node, find: str) -> bool:
+    def remove_node(self, node: Node, find: str | int) -> bool:
         temp: Optional[Node | None] = self.root
         if temp is not None:
             prev: Node = temp
             while temp:
-                if find < temp.vars[self.orderby]:
+                if find < temp.vars[self.orderby]:  # type: ignore
                     if temp.left[self.orderby] is None:
                         return False
                     prev = temp
                     temp = temp.left[self.orderby]
                     continue
-                elif find > temp.vars[self.orderby]:
+                elif find > temp.vars[self.orderby]:  # type: ignore
                     if not temp.right[self.orderby]:
                         return False
                     prev = temp
@@ -281,11 +289,13 @@ class Tree:
     def _find_node_rec(
         self, find: str, node: Optional[Node], orderby: str
     ) -> Node | None:
+        if orderby == "dept":
+            find = int(find)  # type: ignore
         if node is None or find == node.vars[orderby]:
             return node
-        elif find > node.vars[orderby]:
+        elif find > node.vars[orderby]:  # type: ignore
             return self._find_node_rec(find, node.right[orderby], orderby)
-        elif find < node.vars[orderby]:
+        elif find < node.vars[orderby]:  # type: ignore
             return self._find_node_rec(find, node.left[orderby], orderby)
 
     def find_node_recursive(self, find: str) -> Node | None:

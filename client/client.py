@@ -7,14 +7,15 @@ class Client:
     def __init__(self, IP: str, PORT: int) -> None:
         self.__IP: str = IP
         self.__PORT: int = PORT
-
         self.client_socket: socket.socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM
         )
         self.connection()
-
-        Thread(target=self.receiving, daemon=True).start()
-        Thread(target=self.sending).start()
+        t = Thread(target=self.receiving, daemon=True)
+        t1 = Thread(target=self.sending)
+        t.start()
+        t1.start()
+        t1.join()
 
     def connection(self):
         connected = False
@@ -58,8 +59,7 @@ class Client:
         equation: int = mess.count("=")
         comma: int = mess.count(",")
         if equation != 6 or comma != 5:
-            print(f"missing {comma - 5} ',' or {equation - 6} '='.")
-            return ["false"]
+            return ["false", f"missing {comma - 5} ',' or {equation - 6} '='."]
         checking = mess[4:].split(",")
         checking = [val.split("=") for val in checking]
         data = [prompt[1] for prompt in checking]
@@ -69,21 +69,20 @@ class Client:
         error: list[str] = []
         self.key_check(checking, error)
         if error:
-            [print(warning) for warning in error]
-            return ["false"]
+            return ["false", "\n".join(error)]
         message = ""
         for n in range(6):
             message += f",{checking[n]}={data[n]}"
         message = "set " + message[1:]
-        return ["true"] + [message]
+        return ["true", message]
 
     def select_check(self, mess: str) -> list[str]:
-        operate = self.operate(mess)
-        checking = mess[7:].split(operate)
-        data = [prompt[1] for prompt in checking]
-        data = [" ".join(p.split()) for p in data]
-        checking = [prompt[0] for prompt in checking]
-        checking = " ".join([" ".join(p.split()) for p in checking])
+        my_operator: str | None = self.my_operate_get(mess)
+        if my_operator is None:
+            return ["false", "No operator!"]
+        checking = mess[7:].split(my_operator)
+        data = self.trimer(checking[1])
+        checking = self.trimer(checking[0])
         if checking not in [
             "first name",
             "last name",
@@ -92,11 +91,10 @@ class Client:
             "date",
             "dept",
         ]:
-            print("wrong parameter")
-            return ["false"]
-        return ["true"] + [mess]
+            return ["false", "wrong parameter"]
+        return ["true", f"select {checking} {my_operator} {data}"]
 
-    def operate(self, mess: str) -> str | None:
+    def my_operate_get(self, mess: str) -> str | None:
         """return the operator"""
         if "!=" in mess:
             return "!="
@@ -114,12 +112,19 @@ class Client:
     def sending(self) -> None:
         while True:
             mess = input("==> ")
-            check: list[str] = ["false"]
+            check: list[str] = []
             if mess.startswith("set"):
                 check = self.set_check(mess)
             elif mess.startswith("select"):
                 check = self.select_check(mess)
+            elif mess.startswith("print"):
+                check = ["true"] + [mess]
+            elif mess.startswith("quit") or mess.startswith("goodbye"):
+                check = ["true"] + [mess]
+            else:
+                check = ["false"] + ["Command not available"]
             if check[0] == "false":
+                print(check[1])
                 continue
             mess = check[1]
             try:
@@ -127,7 +132,7 @@ class Client:
             except ConnectionResetError:
                 print("500 server shuted off")
                 break
-            if mess == "bye" or mess == "goodbye":
+            if mess == "quit" or mess == "goodbye":
                 break
 
 

@@ -66,7 +66,7 @@ class ShopServer:
     def customer_update(
         self, new_details: list[str], customer: Node, start: bool = False
     ) -> None:
-        customer.dept = str(int(customer.dept) + int(new_details[5]))
+        customer.dept = customer.dept + int(new_details[5])
         customer.date = str(new_details[4])
         customer.vars["dept"] = customer.dept
         customer.vars["date"] = customer.date
@@ -93,7 +93,7 @@ class ShopServer:
             customer_details[2],
             customer_details[3],
             customer_details[4],
-            customer_details[5],
+            int(customer_details[5]),
         )
         for t in self.trees.keys():
             self.trees[t].add_node(customer)
@@ -134,7 +134,7 @@ class ShopServer:
                     customer[2],
                     customer[3],
                     customer[4],
-                    customer[5],
+                    int(customer[5]),
                 )
             )
         return True
@@ -239,7 +239,7 @@ class ShopServer:
                 if len(message) == 2:
                     all_customers = self.trees[message[1]].print_tree()
                 else:
-                    all_customers = self.tree_by_name.print_tree()
+                    all_customers = self.tree_by_dept.print_tree()
                 if all_customers:
                     self.send_to_client(client_socket, all_customers)
                 else:

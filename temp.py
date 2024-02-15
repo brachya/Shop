@@ -14,18 +14,23 @@
 # print(list(a.items()))
 
 
-class A:
-    def __init__(self, a: str) -> None:
-        self._a = a
+# class A:
+#     def __init__(self, a: str) -> None:
+#         self._a = a
 
-    def __str__(self) -> str:
-        print(f"hello {self._a}")
-        return ""
+#     def __str__(self) -> str:
+#         print(f"hello {self._a}")
+#         return ""
 
 
-a = A("n")
-print(a)
-b = [a]
-print(b)
+# a = A("n")
+# print(a)
+# b = [a]
+# print(b)
 # print(3 < 4)
-# print("3b" > "3a")
+from typing import Union
+
+
+print("-200" == "-200")
+x: Union[int, str] = 3
+x: Union[int, str] = "d"
