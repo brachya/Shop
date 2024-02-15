@@ -3,6 +3,10 @@ from threading import Thread
 
 
 class Client:
+    """
+    client side that in receive until stop message,
+    open 2 thread and the main thread is the send
+    """
 
     def __init__(self, IP: str, PORT: int) -> None:
         self.__IP: str = IP
@@ -18,6 +22,7 @@ class Client:
         t1.join()
 
     def connection(self):
+        """at start ,search for server and if not exist can try again"""
         connected = False
         while not connected:
             try:
@@ -28,6 +33,7 @@ class Client:
                 input("Click enter to try again.")
 
     def receiving(self) -> None:
+        """the receiver that print message from server until get '&%^$*$(#)@!'"""
         while True:
             try:
                 message: str = self.client_socket.recv(1024).decode()
@@ -42,11 +48,12 @@ class Client:
                 break
 
     def key_check(self, keys: list[str], error: list[str]) -> None:
+        """get list of parameter and validate that it is the correct values"""
         if keys[0] != "first name":
             error.append("did you mean first name")
         if keys[1] != "last name":
             error.append("did you mean last name")
-        if keys[2] != "id":
+        if keys[2] not in ["id", "identity"]:
             error.append("did you mean id")
         if keys[3] != "phone":
             error.append("did you mean phone")
@@ -56,6 +63,7 @@ class Client:
             error.append("did you mean dept")
 
     def set_check(self, mess: str) -> list[str]:
+        """checks the parameters in set command"""
         equation: int = mess.count("=")
         comma: int = mess.count(",")
         if equation != 6 or comma != 5:
@@ -77,6 +85,7 @@ class Client:
         return ["true", message]
 
     def select_check(self, mess: str) -> list[str]:
+        """checks the parameters in select commands"""
         my_operator: str | None = self.my_operate_get(mess)
         if my_operator is None:
             return ["false", "No operator!"]
@@ -95,7 +104,7 @@ class Client:
         return ["true", f"select {checking} {my_operator} {data}"]
 
     def my_operate_get(self, mess: str) -> str | None:
-        """return the operator"""
+        """find the operator return the operator"""
         if "!=" in mess:
             return "!="
         elif "<" in mess:
@@ -107,9 +116,11 @@ class Client:
         return None
 
     def trimer(self, word: str) -> str:
+        """return string with no spaces in left or right but one between every words"""
         return " ".join(word.split())
 
     def sending(self) -> None:
+        """the main loop to send the server the messages and close the program when send 'quit'"""
         while True:
             mess = input("==> ")
             check: list[str] = []
