@@ -90,6 +90,8 @@ class Client:
         if my_operator is None:
             return ["false", "No operator!"]
         checking = mess[7:].split(my_operator)
+        if len(checking) < 2:
+            return ["false", "No Value"]
         data = self.trimer(checking[1])
         checking = self.trimer(checking[0])
         if checking not in [
