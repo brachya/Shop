@@ -108,6 +108,18 @@ class Client:
                 if not data.isdigit():
                     return "value can hold '-' at start but numbers came after"
 
+    def is_key_right(self, key: str) -> bool:
+        """return if the key available"""
+        return key in [
+            "name",
+            "last name",
+            "identity",
+            "id",
+            "phone",
+            "date",
+            "dept",
+        ]
+
     def select_check(self, mess: str) -> list[str]:
         """checks the parameters in select commands"""
         my_operator: str | None = self.my_operate_get(mess)
@@ -118,15 +130,7 @@ class Client:
             return ["false", "No Value"]
         data = self.trimer(checking[1])
         checking = self.trimer(checking[0])
-        if checking not in [
-            "name",
-            "last name",
-            "identity",
-            "id",
-            "phone",
-            "date",
-            "dept",
-        ]:
+        if not self.is_key_right(checking):
             return ["false", "wrong parameter"]
         error = self.is_value_fit(checking, data)
         if error:
@@ -151,17 +155,30 @@ class Client:
         """return string with no spaces in left or right but one between every words"""
         return " ".join(word.split())
 
+    def print_check(self, mess: str) -> list[str]:
+        """check the print command"""
+        mess_lst: list[str] = mess.split()
+        if len(mess_lst) > 1:
+            mess = self.trimer(mess_lst[1])
+            if self.is_key_right(mess):
+                mess = "identity" if mess == "id" else mess
+                return ["true", "print " + mess]
+            else:
+                return ["false", "wrong key"]
+        else:
+            return ["true", mess_lst[0]]
+
     def sending(self) -> None:
         """the main loop to send the server the messages and close the program when send 'quit'"""
         while True:
-            mess = input("==> ")
+            mess = input("==> ").lower()
             check: list[str] = []
-            if mess.startswith("set"):
+            if mess.startswith("set "):
                 check = self.set_check(mess)
-            elif mess.startswith("select"):
+            elif mess.startswith("select "):
                 check = self.select_check(mess)
-            elif mess.startswith("print"):
-                check = ["true", mess]
+            elif mess.startswith("print "):
+                check = self.print_check(mess)
             elif mess.startswith("quit") or mess.startswith("goodbye"):
                 check = ["true", mess]
             else:

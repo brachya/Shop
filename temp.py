@@ -34,3 +34,6 @@ from typing import Union
 print("-200" == "-200")
 x: Union[int, str] = 3
 x: Union[int, str] = "d"
+a = "98"
+a.lower()
+print(a)

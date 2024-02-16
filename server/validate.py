@@ -2,6 +2,8 @@
 
 
 class Validate:
+    """validate by getting list of customer values and call instance.checked() to
+    run all tests and if error filled so there is a wrong value."""
 
     def __init__(self, customer: list[str]) -> None:
         self.first_name: str = customer[0]
@@ -13,16 +15,19 @@ class Validate:
         self.error: str = ""  # for False case
 
     def first_name_validate(self) -> None:
+        """if name has numbers or signs so add to error the explanation of the mistake."""
         self.error += (
             "first name non only letters.\n" if not self.first_name.isalpha() else ""
         )
 
     def last_name_validate(self) -> None:
+        """if last name has numbers or signs so add to error the explanation of the mistake."""
         self.error += (
             "last name non only letters.\n" if not self.last_name.isalpha() else ""
         )
 
     def id_validate(self) -> None:
+        """if id has letters or signs so add to error the explanation of the mistake."""
         self.error += "id digits only.\n" if not self.id.isdigit() else ""
         self.error += (
             f"missing {9 - len(self.id)} numbers.\n" if len(self.id) < 9 else ""
@@ -32,6 +37,7 @@ class Validate:
         )
 
     def phone_validate(self) -> None:
+        """if phone has letters or signs so add to error the explanation of the mistake."""
         self.error += "phone digits only.\n" if not self.phone.isdigit() else ""
         self.error += (
             "phone with 10 numbers only.\n" if not len(self.phone) == 10 else ""
@@ -39,6 +45,7 @@ class Validate:
         self.error += "phone starts with 0.\n" if not self.phone[0] == "0" else ""
 
     def dept_validate(self) -> None:
+        """if dept has letters or signs except '-' in the left so add to error the explanation of the mistake."""
         wrong_letter = ""
         for letter in self.dept:
             if letter.isalpha() or letter in "~!@#$%^&*()_+`;:=[]}{\\|/?>,<":
@@ -50,6 +57,7 @@ class Validate:
         )
 
     def date_validate(self) -> None:
+        """if date has letters so add to error the explanation of the mistake."""
         sep = ""
         for l in self.date:
             if not l.isalpha() and not l.isdigit():
@@ -70,6 +78,7 @@ class Validate:
         self.error += f"year only between 0 to 9999." if not 0 <= year <= 9999 else ""
 
     def checked(self) -> list[str]:
+        """this run all tests and return errors or 'true' in list[str]"""
         self.first_name_validate()
         self.last_name_validate()
         self.id_validate()
