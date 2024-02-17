@@ -177,7 +177,7 @@ class Client:
                 check = self.set_check(mess)
             elif mess.startswith("select "):
                 check = self.select_check(mess)
-            elif mess.startswith("print "):
+            elif mess == "print" or mess.startswith("print "):
                 check = self.print_check(mess)
             elif mess.startswith("quit") or mess.startswith("goodbye"):
                 check = ["true", mess]
