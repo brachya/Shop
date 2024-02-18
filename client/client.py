@@ -84,7 +84,15 @@ class Client:
         message = "set " + message[1:]
         return ["true", message]
 
+    def is_letter_in(self, my_string: str) -> bool:
+        """return if letter in the string"""
+        for l in my_string:
+            if l.isalpha():
+                return False
+        return True
+
     def is_value_fit(self, param: str, data: str) -> str | None:
+        """check the value when sent by select"""
         if param == "name":
             if not data.isalpha():
                 return "value only letters"
@@ -98,7 +106,7 @@ class Client:
             if not data.isdigit():
                 return "value only numbers"
         elif param == "date":
-            if not data.isalnum():
+            if not self.is_letter_in(data):
                 return "value only numbers and signs"
         elif param == "dept":
             if data[0] == "-":
@@ -112,7 +120,7 @@ class Client:
         """return if the key available"""
         return key in [
             "name",
-            "last name",
+            "last",
             "identity",
             "id",
             "phone",
@@ -158,15 +166,20 @@ class Client:
     def print_check(self, mess: str) -> list[str]:
         """check the print command"""
         mess_lst: list[str] = mess.split()
-        if len(mess_lst) > 1:
+        if len(mess_lst) == 1:
+            return ["true", mess_lst[0]]
+        elif len(mess_lst) == 2:
             mess = self.trimer(mess_lst[1])
             if self.is_key_right(mess):
                 mess = "identity" if mess == "id" else mess
                 return ["true", "print " + mess]
-            else:
-                return ["false", "wrong key"]
-        else:
-            return ["true", mess_lst[0]]
+        elif len(mess_lst) == 3:
+            check = " ".join(mess_lst[1:])
+            if check == "first name":
+                return ["true", "print " + check]
+            elif check == "last name":
+                return ["true", "print last_name"]
+        return ["false", "wrong key"]
 
     def sending(self) -> None:
         """the main loop to send the server the messages and close the program when send 'quit'"""

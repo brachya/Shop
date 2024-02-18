@@ -3,6 +3,7 @@ from threading import Lock, Thread
 import sys
 from validate import Validate
 from tree import Tree, Node
+from datetime import date
 
 
 class ShopServer:
@@ -85,10 +86,10 @@ class ShopServer:
         than replace the Node in the tree of dept and date
         """
         customer.dept = customer.dept + int(new_details[5])
-        customer.date = str(new_details[4])
+        customer.date = self.s_date_to_date(new_details[4])
         customer.vars["dept"] = customer.dept
         customer.vars["date"] = customer.date
-        if not start:
+        if not start:  # because date didn't created first
             self.tree_by_dept.remove_node(customer, customer.dept)
             self.tree_by_date.remove_node(customer, customer.date)
             customer.left["dept"] = None
@@ -97,6 +98,17 @@ class ShopServer:
             customer.right["date"] = None
             self.tree_by_dept.add_node(customer)
             self.tree_by_date.add_node(customer)
+
+    def s_date_to_date(self, str_date: str) -> date:
+        """converts string of date to date object"""
+        sep = ""
+        for l in str_date:
+            if not l.isalpha() and not l.isdigit():
+                sep = l
+                break
+        dates = [int(d) for d in str_date.split(sep)]
+        day, month, year = dates
+        return date(year, month, day)
 
     def add_line_to_file(self, customer_details: list[str]) -> None:
         """
@@ -117,7 +129,7 @@ class ShopServer:
             customer_details[1].capitalize(),
             customer_details[2],
             customer_details[3],
-            customer_details[4],
+            self.s_date_to_date(customer_details[4]),
             int(customer_details[5]),
         )
         for t in self.trees.keys():
@@ -161,7 +173,7 @@ class ShopServer:
                     customer[1],
                     customer[2],
                     customer[3],
-                    customer[4],
+                    self.s_date_to_date(customer[4]),
                     int(customer[5]),
                 )
             )

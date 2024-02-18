@@ -1,4 +1,5 @@
 from typing import Optional, Union
+from datetime import date
 
 
 class Node:
@@ -10,14 +11,14 @@ class Node:
         last_name: str,
         identity: str,
         phone: str,
-        date: str,
+        date: date,
         dept: int,
     ) -> None:
         self.name = name
         self.last_name = last_name
         self.identity = identity
         self.phone = phone
-        self.date = date
+        self.date: date = date
         self.dept: int = dept
         self.left: dict[str, Node | None] = {
             "name": None,
@@ -35,10 +36,10 @@ class Node:
             "date": None,
             "dept": None,
         }
-        self.vars: dict[str, Union[str, int]] = locals()
+        self.vars: dict[str, Union[str, int, date]] = locals()
 
     def __str__(self) -> str:
-        return f"{self.name} {self.last_name} {self.identity} {self.phone} {self.date} {self.dept}"
+        return f"{self.name} {self.last_name} {self.identity} {self.phone} {self.date.day}/{self.date.month}/{self.date.year} {self.dept}"
 
     @property
     def to_dict(self) -> dict[str, str]:
@@ -48,7 +49,7 @@ class Node:
             "last name": self.last_name,
             "id": self.identity,
             "phone": self.phone,
-            "date": self.date,
+            "date": f"{self.date.day}/{self.date.month}/{self.date.year}",
             "dept": str(self.dept),
         }
 
@@ -107,13 +108,14 @@ class Tree:
             return to_send
 
     def _select_equal(
-        self, value: str, node: Optional[Node], lst_return: list[dict[str, str]]
+        self,
+        value: str | int | date,
+        node: Optional[Node],
+        lst_return: list[dict[str, str]],
     ) -> None:
         """adding to list all the equal values from node, (if node is dept so converting the value to int)"""
         if not node:
             return
-        if type(node.vars[self.orderby]) == int:
-            value = int(value)  # type: ignore
         if value == node.vars[self.orderby]:
             lst_return.append(node.to_dict)
         if value > node.vars[self.orderby]:  # type: ignore
@@ -124,13 +126,14 @@ class Tree:
                 self._select_equal(value, node.left[self.orderby], lst_return)
 
     def _select_non_equal(
-        self, value: str, node: Optional[Node], lst_return: list[dict[str, str]]
+        self,
+        value: str | int | date,
+        node: Optional[Node],
+        lst_return: list[dict[str, str]],
     ) -> None:
         """adding to list all the non equal values from node, (if node is dept so converting the value to int)"""
         if not node:
             return
-        if type(node.vars[self.orderby]) == int:
-            value = int(value)  # type: ignore
         if node.left[self.orderby]:
             self._select_non_equal(value, node.left[self.orderby], lst_return)
         if value != node.vars[self.orderby]:
@@ -140,7 +143,7 @@ class Tree:
 
     def _select_above(
         self,
-        value: str,
+        value: str | date | int,
         node: Optional[Node],
         lst_return: list[dict[str, str]],
         exist: bool = False,
@@ -148,8 +151,6 @@ class Tree:
         """adding to list all the above values from node, (if node is dept so converting the value to int)"""
         if not node:
             return
-        if type(node.vars[self.orderby]) == int:
-            value = int(value)  # type: ignore
         if not exist:
             if node.vars[self.orderby] < value:  # type: ignore
                 if node.right[self.orderby]:
@@ -180,13 +181,14 @@ class Tree:
                 self._select_above(value, node.right[self.orderby], lst_return, exist)
 
     def _select_under(
-        self, value: str, node: Optional[Node], lst_return: list[dict[str, str]]
+        self,
+        value: str | int | date,
+        node: Optional[Node],
+        lst_return: list[dict[str, str]],
     ) -> None:
         """adding to list all the low values from node, (if node is dept so converting the value to int)"""
         if not node:
             return
-        if type(node.vars[self.orderby]) == int:
-            value = int(value)  # type: ignore
         if node.left[self.orderby]:
             self._select_under(value, node.left[self.orderby], lst_return)
         if node.vars[self.orderby] < value:  # type: ignore
@@ -197,14 +199,21 @@ class Tree:
     def select_from(self, value: str, operate: str) -> str:
         """calling functions from root to find the results and convert to string"""
         found: list[dict[str, str]] = []
-        if operate == ">":
-            self._select_above(value, self.root, found)
-        elif operate == "<":
-            self._select_under(value, self.root, found)
-        elif operate == "=":
-            self._select_equal(value, self.root, found)
+        if self.orderby == "dept":
+            val = int(value)
+        elif self.orderby == "date":
+            val = self.s_date_to_date(value)
         else:
-            self._select_non_equal(value, self.root, found)
+            val = value
+
+        if operate == ">":
+            self._select_above(val, self.root, found)
+        elif operate == "<":
+            self._select_under(val, self.root, found)
+        elif operate == "=":
+            self._select_equal(val, self.root, found)
+        else:
+            self._select_non_equal(val, self.root, found)
         if not found:
             return "No values"
         place = 1
@@ -246,7 +255,7 @@ class Tree:
         if self.root:
             return self._max_node(self.root)
 
-    def remove_node(self, node: Node, find: str | int) -> bool:
+    def remove_node(self, node: Node, find: str | int | date) -> bool:
         "searching for the node that equal the find value and cut the connection to him and from him"
         temp: Optional[Node | None] = self.root
         if temp is not None:
@@ -302,12 +311,21 @@ class Tree:
         # Empty Tree
         return False
 
+    def s_date_to_date(self, str_date: str) -> date:
+        """converts string of date to date object"""
+        sep = ""
+        for l in str_date:
+            if not l.isalpha() and not l.isdigit():
+                sep = l
+                break
+        dates = [int(d) for d in str_date.split(sep)]
+        day, month, year = dates
+        return date(year, month, day)
+
     def _find_node_rec(
-        self, find: str, node: Optional[Node], orderby: str
+        self, find: str | date | int, node: Optional[Node], orderby: str
     ) -> Node | None:
         """return the first node that match the value"""
-        if orderby == "dept":
-            find = int(find)  # type: ignore
         if node is None or find == node.vars[orderby]:
             return node
         elif find > node.vars[orderby]:  # type: ignore
@@ -317,5 +335,11 @@ class Tree:
 
     def find_node_recursive(self, find: str) -> Node | None:
         """calling the _find_node_rec and with the root"""
-        node: Node | None = self._find_node_rec(find, self.root, self.orderby)
+        if self.orderby == "dept":
+            val = int(find)
+        elif self.orderby == "date":
+            val = self.s_date_to_date(find)
+        else:
+            val = find
+        node: Node | None = self._find_node_rec(val, self.root, self.orderby)
         return node if node else None
